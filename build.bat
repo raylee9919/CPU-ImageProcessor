@@ -7,6 +7,13 @@ call "tools/CTIME/ctime" -begin tools/CTIME/build.ctm
 
 if not exist bin mkdir bin
 
+:: Get cl.exe
+where cl >nul 2>nul
+if %errorlevel%==1 (
+    echo Looking for 'vcvars64.bat'.. Recommended to run from the Developer Command Prompt.
+    @call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+)
+
 :: Unpack Arguments.
 for %%a in (%*) do set "%%a=1"
 if not "%release%" == "1" set debug=1
