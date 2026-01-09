@@ -35,7 +35,7 @@ struct work_param
 
 #define KERNEL_RADIUS 4
 // Sum: 65536
-static read_only s32 Kernel[KERNEL_RADIUS*2 + 1][KERNEL_RADIUS*2 + 1] =
+static s32 Kernel[KERNEL_RADIUS*2 + 1][KERNEL_RADIUS*2 + 1] =
 {
     {50, 120, 224, 326, 370, 326, 224, 120, 50},
     {120, 288, 538, 783, 887, 783, 538, 288, 120},
@@ -48,4 +48,4 @@ static read_only s32 Kernel[KERNEL_RADIUS*2 + 1][KERNEL_RADIUS*2 + 1] =
     {50, 120, 224, 326, 370, 326, 224, 120, 50},
 };
 
-static read_only u8 GlobalThreshold = 0x4;
+static u8 GlobalThreshold = 0x4;

@@ -7,6 +7,7 @@
 //
 #include "base.h"
 #include "win32.h"
+#include "profiler.h"
 #include "image.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -17,19 +18,30 @@
 #define STBIW_ASSERT(x)
 #include "third_party/stb_image_write.h"
 
-static b32 GlobalEnabledSSE = false;
+
+struct state
+{
+    f64 InverseCPUTimerFrequency;
+
+    b32 EnabledSSE;
+    b32 Multithreaded;
+    b32 UseThreadPool;
+    PTP_POOL ThreadPool;
+    PTP_CALLBACK_ENVIRON ThreadPoolCallbackEnv;
+};
+static state State;
 
 
 // [.cpp]
 //
 #include "win32.cpp"
+#include "profiler.cpp"
 #include "image.cpp"
 
 int main(int ArgCount, char **Args) 
 {
     // Config
     //
-    b32 IsMultithreaded = false;
     const char *filename = "C:\\dev\\swl\\image-processor\\data\\AnimeGirl.jpg";
     const char *out_filename = "C:\\dev\\swl\\image-processor\\data\\AnimeGirl_Out.png";
 
@@ -38,31 +50,49 @@ int main(int ArgCount, char **Args)
         char *Option = Args[ArgIndex];
         if (!strcmp(Option, "-mt")) 
         {
-            IsMultithreaded = true;
+            State.Multithreaded = true;
         }
 
         if (!strcmp(Option, "-sse")) 
         {
-            GlobalEnabledSSE = true;
+            State.EnabledSSE = true;
+        }
+    }
+
+    for (int ArgIndex = 0; ArgIndex < ArgCount; ++ArgIndex) 
+    {
+        char *Option = Args[ArgIndex];
+        if (!strcmp(Option, "-tp")) 
+        {
+            State.UseThreadPool = true;
+            State.Multithreaded = true;
         }
     }
 
 
-    if (IsMultithreaded) 
+    if (State.Multithreaded) 
     {
         printf("Multi threaded.\n");
+        if (State.UseThreadPool) 
+        {
+            printf("Use thread pool.\n");
+        }
     }
     else 
     {
         printf("Single threaded.\n");
     }
 
-    if (GlobalEnabledSSE) 
+    if (State.EnabledSSE) 
     {
         printf("SSE Enabled.\n");
     }
     printf("\n");
 
+
+    // Preparing timer.
+    //
+    State.InverseCPUTimerFrequency = 1.f / (f64)EstimateCPUTimerFrequency();
 
     // Image preparation
     //
@@ -133,9 +163,25 @@ int main(int ArgCount, char **Args)
     {
         ScopeClock("Total: %dms\n");
 
-        if (IsMultithreaded) 
+        if (State.Multithreaded) 
         {
             u32 CoreCount = GetLogicalCoreCount();
+
+            if (State.UseThreadPool)
+            {
+                State.ThreadPool = CreateThreadpool(NULL);
+                Assert(State.ThreadPool);
+
+                SetThreadpoolThreadMinimum(State.ThreadPool, CoreCount);
+                SetThreadpoolThreadMaximum(State.ThreadPool, CoreCount);
+
+                InitializeThreadpoolEnvironment(State.ThreadPoolCallbackEnv);
+            }
+            else
+            {
+            }
+
+
             work_queue *Queue = new work_queue;
             InitWorkQueue(Queue, CoreCount);
 

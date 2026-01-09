@@ -178,7 +178,7 @@ ApplyKernelOnPixel(bitmap *Dst, bitmap *Src, int X, int Y)
 {
     s32x4 RGBA = {};
 
-    if (GlobalEnabledSSE)
+    if (State.EnabledSSE)
     {
         const int LaneWidth = 4;
         for (int dY = -KERNEL_RADIUS; dY <= KERNEL_RADIUS; ++dY) 
@@ -262,7 +262,7 @@ DifferenceOfGaussianWork(work_param *Param)
     int XMaxPastOne = Param->XMaxPastOne;
     int YMaxPastOne = Param->YMaxPastOne;
 
-    if (GlobalEnabledSSE) 
+    if (State.EnabledSSE) 
     {
         const int LaneWidth = 4;
         for (int Y = YMin; Y < YMaxPastOne; ++Y) 

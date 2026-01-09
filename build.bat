@@ -43,6 +43,7 @@ if "%release%" == "1" (
 
 pushd bin
 call cl %compiler_flags% ../source/main.cpp /Fe:ImageProcessor.exe /link %linker_flags%
+del *.obj *.res >nul
 popd
 
 :: CTIME End ::
